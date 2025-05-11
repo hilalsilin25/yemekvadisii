@@ -6,6 +6,7 @@ import 'package:yemekvadisii/pages/Tatlilar.dart';
 import 'package:yemekvadisii/pages/Baklagiller.dart';
 import 'package:yemekvadisii/pages/AnaSayfa.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(GirisSayfasiApp());
@@ -62,7 +63,7 @@ class HosgeldinizSayfasi extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Yemek Vadisi"),
-        backgroundColor: Colors.deepOrange,
+        backgroundColor: const Color.fromARGB(255, 188, 144, 230),
       ),
       body: Center(
         child: Column(
@@ -73,7 +74,7 @@ class HosgeldinizSayfasi extends StatelessWidget {
               style: GoogleFonts.lobster(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: const Color.fromARGB(255, 33, 13, 37),
               ),
             ),
             SizedBox(height: 30),
@@ -83,14 +84,14 @@ class HosgeldinizSayfasi extends StatelessWidget {
               },
               child: Text("Giriş Yap"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepOrange,
+                backgroundColor: const Color.fromARGB(255, 188, 144, 230),
               ),
             ),
            
           ],
         ),
       ),
-      backgroundColor: const Color.fromARGB(255, 218, 106, 32),
+      backgroundColor: const Color.fromARGB(255, 230, 232, 221),
     );
   }
 }
@@ -120,8 +121,9 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Yemek Vadisi - Giriş"),
-        backgroundColor: Colors.deepOrange,
+        backgroundColor:  const Color.fromARGB(255, 188, 144, 230),
       ),
+        backgroundColor: const Color.fromARGB(255, 230, 232, 221),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -138,6 +140,7 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
                   }
                   return null;
                 },
+                
               ),
               TextFormField(
                 controller: _sifreController,
@@ -155,26 +158,32 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
                 onPressed: _girisYap,
                 child: Text("Giriş Yap"),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
+                  backgroundColor:  const Color.fromARGB(255, 188, 144, 230),
                 ),
+                
               ),
               SizedBox(height: 10),
               TextButton(
+                
                 onPressed: _kayitOl,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
+                  
                   children: [
-                    Icon(Icons.food_bank, color: Colors.deepOrange),
+                    Icon(Icons.food_bank, color: const Color.fromARGB(255, 188, 144, 230),),
                     SizedBox(width: 10),
-                    Text("Yeni Hesap Oluştur", style: TextStyle(color: Colors.deepOrange)),
+                    Text("Yeni Hesap Oluştur", style: TextStyle(color:  const Color.fromARGB(255, 188, 144, 230),)),
                   ],
                 ),
+                
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.deepOrange,
                 ),
+                
               ),
             ],
           ),
+          
         ),
       ),
     );
@@ -203,8 +212,9 @@ class _KayitSayfasiState extends State<KayitSayfasi> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Yemek Vadisi - Kayıt Ol"),
-        backgroundColor: Colors.deepOrange,
+        backgroundColor: const Color.fromARGB(255, 188, 144, 230),
       ),
+       backgroundColor: const Color.fromARGB(255, 230, 232, 221),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -248,7 +258,7 @@ class _KayitSayfasiState extends State<KayitSayfasi> {
                 onPressed: _kayitOl,
                 child: Text("Hesap Oluştur"),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
+                  backgroundColor: const Color.fromARGB(255, 188, 144, 230),
                 ),
               ),
             ],

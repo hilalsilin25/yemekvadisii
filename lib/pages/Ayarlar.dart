@@ -18,7 +18,7 @@ class _AyarlarState extends State<Ayarlar> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Ayarlar'),
-        backgroundColor: Colors.deepOrange,
+        backgroundColor:  const Color.fromARGB(255, 188, 144, 230),
       ),
       body: ListView(
         children: [

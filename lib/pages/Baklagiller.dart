@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yemekvadisii/pages/Baklagiller.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Baklagiller extends StatelessWidget {
   final List<Map<String, String>> baklagiller = [
@@ -122,20 +123,69 @@ Yanında pilavla servis edin.'''},
 Yanında pilavla servis edebilirsiniz.'''},
   ];
 
+  void googleAramaYap(BuildContext context, String aramaKelimesi) async {
+    final url = 'https://www.google.com/search?q=${Uri.encodeComponent(aramaKelimesi)}';
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Google araması açılamadı!"))
+      );
+    }
+  }
+
+  void aramaDialogAc(BuildContext context) {
+    TextEditingController aramaController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Google'da Ara"),
+        content: TextField(
+          controller: aramaController,
+          decoration: InputDecoration(hintText: "Ne aramak istiyorsun paşam?"),
+        ),
+        actions: [
+          TextButton(
+            child: Text("İptal"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color.fromARGB(255, 188, 144, 230),
+              foregroundColor: Colors.white,
+            ),
+            child: Text("Ara"),
+            onPressed: () {
+              Navigator.pop(context);
+              googleAramaYap(context, aramaController.text);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Baklagiller', style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.deepOrange,
+        backgroundColor: Color.fromARGB(255, 188, 144, 230),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () => aramaDialogAc(context),
+          )
+        ],
       ),
       body: GridView.builder(
         padding: EdgeInsets.all(10),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // 2 sütunlu kareler
+          crossAxisCount: 2,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
-          childAspectRatio: 1, // kare olsun
+          childAspectRatio: 1,
         ),
         itemCount: baklagiller.length,
         itemBuilder: (context, index) {
@@ -154,9 +204,9 @@ Yanında pilavla servis edebilirsiniz.'''},
             },
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.orange[100],
+                color: Color.fromARGB(255, 243, 231, 253),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.deepOrange, width: 2),
+                border: Border.all(color: Color.fromARGB(255, 172, 120, 203), width: 2),
               ),
               child: Center(
                 child: Text(
@@ -165,7 +215,7 @@ Yanında pilavla servis edebilirsiniz.'''},
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.deepOrange,
+                    color: Color.fromARGB(255, 63, 15, 73),
                   ),
                 ),
               ),
@@ -189,7 +239,7 @@ class TarifDetaySayfasi extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(isim, style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.deepOrange,
+        backgroundColor: Color.fromARGB(255, 188, 144, 230),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -199,7 +249,7 @@ class TarifDetaySayfasi extends StatelessWidget {
             children: [
               Text(
                 'Malzemeler',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepOrange),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 63, 15, 73)),
               ),
               SizedBox(height: 10),
               Text(
@@ -209,7 +259,7 @@ class TarifDetaySayfasi extends StatelessWidget {
               SizedBox(height: 20),
               Text(
                 'Tarif',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepOrange),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 63, 15, 73)),
               ),
               SizedBox(height: 10),
               Text(

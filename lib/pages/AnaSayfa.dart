@@ -43,6 +43,7 @@ class _AnaSayfaState extends State<AnaSayfa> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 220, 222, 226),
       drawer: Drawer(
         child: Column(
           children: <Widget>[
@@ -52,10 +53,10 @@ class _AnaSayfaState extends State<AnaSayfa> {
               currentAccountPicture: CircleAvatar(
                 backgroundImage: AssetImage("assets/images/atakan.jpg"),
               ),
-              decoration: BoxDecoration(color: Colors.deepOrange),
+              decoration: BoxDecoration(color: const Color.fromARGB(255, 188, 144, 230),),
             ),
             ListTile(
-              leading: Icon(Icons.settings, color: Colors.deepOrange),
+              leading: Icon(Icons.settings, color:const Color.fromARGB(255, 33, 13, 37),),
               title: Text('Ayarlar'),
               onTap: () {
                 Navigator.push(
@@ -70,7 +71,7 @@ class _AnaSayfaState extends State<AnaSayfa> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.exit_to_app, color: Colors.deepOrange),
+              leading: Icon(Icons.exit_to_app, color:const Color.fromARGB(255, 33, 13, 37),),
               title: Text('Çıkış Yap'),
               onTap: () {
                 // Çıkış yapınca giriş ekranına yönlendiriyoruz
@@ -84,16 +85,19 @@ class _AnaSayfaState extends State<AnaSayfa> {
           ],
         ),
       ),
+    
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             pinned: true,
-            backgroundColor: Colors.deepOrange,
+            backgroundColor: const Color.fromARGB(255, 188, 144, 230),
+            
             expandedHeight: 120,
             flexibleSpace: FlexibleSpaceBar(
               title: Text('🍽️ Yemek Vadisi'),
               centerTitle: true,
             ),
+            
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -104,10 +108,12 @@ class _AnaSayfaState extends State<AnaSayfa> {
                   style: TextStyle(
                     fontSize: 18,
                     fontStyle: FontStyle.italic,
-                    color: Colors.deepOrange,
+                    color: const Color.fromARGB(255, 63, 15, 73),
                   ),
+                  
                   textAlign: TextAlign.center,
                 ),
+                
               ),
             ),
           ),
@@ -120,15 +126,16 @@ class _AnaSayfaState extends State<AnaSayfa> {
                   child: Card(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     elevation: 5,
-                    color: Colors.orange.shade50,
+                    color: const Color.fromARGB(255, 255, 255, 254),
                     child: ListTile(
-                      leading: Icon(item['icon'], color: Colors.deepOrange),
+                      leading: Icon(item['icon'], color: const Color.fromARGB(255, 172, 120, 203)),
                       title: Text(item['title'], style: TextStyle(fontSize: 20)),
-                      trailing: Icon(Icons.chevron_right, color: Colors.deepOrange),
+                      trailing: Icon(Icons.chevron_right, color: const Color.fromARGB(255, 172, 120, 203),),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => item['page']),
+                          
                         );
                       },
                     ),

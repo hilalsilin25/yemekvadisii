@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yemekvadisii/pages/Tatlilar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Tatlilar extends StatelessWidget {
   final List<Map<String, String>> tatlilar = [
@@ -395,27 +396,49 @@ Afiyet olsun!'''
     },
   ];
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Tatlılar'),
-        backgroundColor: Colors.deepOrange,
+       backgroundColor: const Color.fromARGB(255, 188, 144, 230),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: TatliSearchDelegate(tatlilar),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.public),
+            onPressed: () async {
+              final Uri googleUrl = Uri.parse('https://www.google.com/search?q=tatlı+tarifleri');
+              if (await canLaunchUrl(googleUrl)) {
+                await launchUrl(googleUrl);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Google açılamadı paşam.')),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: CustomScrollView(
         slivers: [
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                // ListView öğeleri burada oluşturuluyor
-                Color backgroundColor = index % 2 == 0 ? Colors.white : Colors.orange[50]!; // Her iki öğe arasında renk değişimi
-
+                Color backgroundColor =  Colors.grey.shade200; // Hafif gri iç renk
                 return Card(
                   margin: EdgeInsets.all(8),
                   elevation: 4,
                   color: backgroundColor,
                   child: ListTile(
-                    leading: Icon(Icons.cake, color: Colors.deepOrange),
+                    leading: Icon(Icons.cake, color: const Color.fromARGB(255, 98, 19, 113),),
                     title: Text(
                       tatlilar[index]['isim']!,
                       style: TextStyle(
@@ -424,33 +447,116 @@ Afiyet olsun!'''
                       ),
                     ),
                     onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text(tatlilar[index]['isim']!),
-                          content: SingleChildScrollView(
-                            child: Text(
-                              tatlilar[index]['tarif']!,
-                              style: TextStyle(fontSize: 16),
-                            ),
+                    showDialog(
+                     context: context,
+                     builder: (context) => AlertDialog(
+                        title: Text(
+                        tatlilar[index]['isim']!,
+                        style: TextStyle(color: Colors.purple[900], fontWeight: FontWeight.bold),  // Koyu mor başlık
+                      ),
+                        content: SingleChildScrollView(
+                         child: Text(
+                           tatlilar[index]['tarif']!,
+                           style: TextStyle(fontSize: 16, color: Colors.black),  // Siyah metin
+                         ),
+                       ),
+                     actions: [
+                     TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Kapat',
+                       style: TextStyle(color: Colors.purple[900]),  // Mor buton yazısı
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text('Kapat'),
-                            ),
-                          ],
-                        ),
+                         ),
+                        ],
+                       ),
                       );
                     },
                   ),
                 );
               },
-              childCount: tatlilar.length, // Listede kaç öğe varsa onu belirt
+              childCount: tatlilar.length,
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class TatliSearchDelegate extends SearchDelegate {
+  final List<Map<String, String>> tatlilar;
+
+  TatliSearchDelegate(this.tatlilar);
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      )
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () => close(context, null),
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    final results = tatlilar.where((tatli) =>
+        tatli['isim']!.toLowerCase().contains(query.toLowerCase())).toList();
+
+    return ListView(
+      children: results.map((tatli) {
+        return ListTile(
+          title: Text(tatli['isim']!),
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(tatli['isim']!),
+                content: SingleChildScrollView(
+                  child: Text(
+                    tatli['tarif']!,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Kapat'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final suggestions = tatlilar.where((tatli) =>
+        tatli['isim']!.toLowerCase().contains(query.toLowerCase())).toList();
+
+    return ListView(
+      children: suggestions.map((tatli) {
+        return ListTile(
+          title: Text(tatli['isim']!),
+          onTap: () {
+            query = tatli['isim']!;
+            showResults(context);
+          },
+        );
+      }).toList(),
     );
   }
 }

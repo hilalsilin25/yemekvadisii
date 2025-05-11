@@ -282,7 +282,7 @@ Afiyet Olsun efendimmm
   '''
 },
   };
-  @override
+ @override
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
@@ -294,7 +294,7 @@ Widget build(BuildContext context) {
           fontWeight: FontWeight.bold,
         ),
       ),
-      backgroundColor: Colors.deepOrange, // Turuncu arka plan
+      backgroundColor: const Color.fromARGB(255, 188, 144, 230), // Lila AppBar arka plan
     ),
     body: Padding(
       padding: EdgeInsets.all(16.0),
@@ -307,7 +307,7 @@ Widget build(BuildContext context) {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepOrange, // Kiremit rengi başlık için
+                color: const Color.fromARGB(255, 92, 58, 120), // Koyu mor başlık
                 fontFamily: 'Roboto',
               ),
             ),
@@ -326,7 +326,7 @@ Widget build(BuildContext context) {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepOrange, // Kiremit rengi başlık için
+                color: const Color.fromARGB(255, 92, 58, 120), // Koyu mor başlık
                 fontFamily: 'Roboto',
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Pilavlar extends StatelessWidget {
   final List<Map<String, String>> pilavlar = [
@@ -79,17 +80,32 @@ Doyurucu ve nefis bir ana yemek olur!''',
       length: pilavlar.length,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Pilavlar'),
-          backgroundColor: Colors.deepOrange,
+          title: Text(
+            'Pilavlar',
+            style: TextStyle( color: Colors.grey.shade200, ),
+          ),
+          backgroundColor: Color(0xFF9575CD), // Lila rengi
           actions: [
             IconButton(
-              icon: Icon(Icons.search),
+              icon: Icon(Icons.search, color: Colors.white),
               onPressed: () {
-                // Arama butonuna basıldığında yapılacak işlemi buraya yaz
                 showSearch(
                   context: context,
                   delegate: PilavSearchDelegate(pilavlar),
                 );
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.public, color: Colors.white),
+              onPressed: () async {
+                final Uri googleUrl = Uri.parse('https://www.google.com/search?q=pilav+tarifleri');
+                if (await canLaunchUrl(googleUrl)) {
+                  await launchUrl(googleUrl);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Google açılamadı aslanım.'))
+                  );
+                }
               },
             ),
           ],
@@ -110,12 +126,12 @@ Doyurucu ve nefis bir ana yemek olur!''',
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Colors.deepOrange,
+                              color: Color(0xFF512DA8), // Koyu mor
                             ),
                           ),
                           SizedBox(height: 10),
                           Text(
-                            pilav['tarif']!.split("Yapılışı:")[0], // Malzemeleri ayırdım
+                            pilav['tarif']!.split("Yapılışı:")[0],
                             style: TextStyle(fontSize: 18, color: Colors.black87),
                           ),
                           SizedBox(height: 20),
@@ -124,12 +140,12 @@ Doyurucu ve nefis bir ana yemek olur!''',
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Colors.deepOrange,
+                              color: Color(0xFF512DA8), // Koyu mor
                             ),
                           ),
                           SizedBox(height: 10),
                           Text(
-                            pilav['tarif']!.split("Yapılışı:")[1], // Tarifi ayırdım
+                            pilav['tarif']!.split("Yapılışı:")[1],
                             style: TextStyle(fontSize: 18, color: Colors.black87),
                           ),
                         ],
@@ -140,8 +156,11 @@ Doyurucu ve nefis bir ana yemek olur!''',
               ),
             ),
             Container(
-              color: Colors.deepOrange,
+              color: Color(0xFF9575CD), // Lila rengi
               child: TabBar(
+                indicatorColor: Color(0xFF512DA8), // Koyu mor
+                labelColor: Color(0xFF512DA8), // Koyu mor yazı
+                unselectedLabelColor: Colors.black, // Seçilmemiş tab yazı rengi siyah
                 tabs: pilavlar.map((pilav) {
                   return Tab(
                     text: pilav['isim'],
@@ -200,7 +219,7 @@ class PilavSearchDelegate extends SearchDelegate {
                 title: Text(pilav['isim']!),
                 content: SingleChildScrollView(
                   child: Text(
-                    pilav['tarif']!,
+                    pilav['tarif']! ,
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
