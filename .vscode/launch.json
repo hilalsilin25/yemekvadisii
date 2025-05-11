@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "yemekvadisii",
+        "request": "launch",
+        "type": "dart",
+        "program": "lib/pages/main.dart"
+      },
+      {
+        "name": "yemekvadisii (profile mode)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "profile",
+        "program": "lib/pages/main.dart"
+      },
+      {
+        "name": "yemekvadisii (release mode)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "release",
+        "program": "lib/pages/main.dart"
+      }
+    ]
+  }
