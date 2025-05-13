@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1024877792349",
+    "project_id": "yemek-vadisi",
+    "storage_bucket": "yemek-vadisi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1024877792349:android:36ffc0cf8356d17aff51b4",
+        "android_client_info": {
+          "package_name": "com.yemek.vadisi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCumm-FeRoHSETflaWKXWOHHWjE4kDdBuE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
