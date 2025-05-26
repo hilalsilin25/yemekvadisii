@@ -48,6 +48,7 @@ class DefaultFirebaseOptions {
     authDomain: 'yemek-vadisi.firebaseapp.com',
     storageBucket: 'yemek-vadisi.firebasestorage.app',
     measurementId: 'G-54MKHFYDEW',
+    databaseURL: 'https://yemek-vadisi-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -56,6 +57,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1024877792349',
     projectId: 'yemek-vadisi',
     storageBucket: 'yemek-vadisi.firebasestorage.app',
+    databaseURL: 'https://yemek-vadisi-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -65,6 +67,7 @@ class DefaultFirebaseOptions {
     projectId: 'yemek-vadisi',
     storageBucket: 'yemek-vadisi.firebasestorage.app',
     iosBundleId: 'com.example.yemekvadisii',
+    databaseURL: 'https://yemek-vadisi-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -74,6 +77,7 @@ class DefaultFirebaseOptions {
     projectId: 'yemek-vadisi',
     storageBucket: 'yemek-vadisi.firebasestorage.app',
     iosBundleId: 'com.example.yemekvadisii',
+    databaseURL: 'https://yemek-vadisi-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

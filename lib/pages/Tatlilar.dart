@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 class Tatlilar extends StatelessWidget {
   final List<Map<String, String>> tatlilar = [
+
+    
     {
       'isim': 'Baklava',
       'tarif': '''Malzemeler: 
@@ -395,6 +397,7 @@ Kaç kişilik: 6 kişilik
 Afiyet olsun!'''
     },
   ];
+  
 
  @override
   Widget build(BuildContext context) {
@@ -409,6 +412,9 @@ Afiyet olsun!'''
               showSearch(
                 context: context,
                 delegate: TatliSearchDelegate(tatlilar),
+
+
+                
               );
             },
           ),
@@ -444,6 +450,10 @@ Afiyet olsun!'''
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+
+
+
+                        
                       ),
                     ),
                     onTap: () {

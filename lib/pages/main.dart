@@ -6,15 +6,19 @@ import 'package:yemekvadisii/pages/Tatlilar.dart';
 import 'package:yemekvadisii/pages/Baklagiller.dart';
 import 'package:yemekvadisii/pages/AnaSayfa.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import '../firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
-  runApp(GirisSayfasiApp());
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
 
+ runApp(GirisSayfasiApp());
 }
 
 class GirisSayfasiApp extends StatefulWidget {
@@ -29,31 +33,32 @@ class _GirisSayfasiAppState extends State<GirisSayfasiApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/hoşgeldiniz',
+      initialRoute: '/hosgeldiniz',
       routes: {
-        '/hoşgeldiniz': (context) => HosgeldinizSayfasi(),
+        '/hosgeldiniz': (context) => HosgeldinizSayfasi(),
         '/': (context) => GirisSayfasi(),
         '/anasayfa': (context) => AnaSayfa(
-          karanlikMod: _karanlikMod, 
-          onKaranlikModChanged: (bool value) {
-            setState(() {
-              _karanlikMod = value;
-            });
-          },
-        ),
+              karanlikMod: _karanlikMod,
+              onKaranlikModChanged: (bool value) {
+                setState(() {
+                  _karanlikMod = value;
+                });
+              },
+            ),
         '/tatlilar': (context) => Tatlilar(),
         '/corbalar': (context) => CorbalarSayfasi(),
         '/pilavlar': (context) => Pilavlar(),
         '/ayarlar': (context) => Ayarlar(
-          karanlikMod: _karanlikMod,
-          onKaranlikModChanged: (bool value) {
-            setState(() {
-              _karanlikMod = value;
-            });
-          },
-        ),
+              karanlikMod: _karanlikMod,
+              onKaranlikModChanged: (bool value) {
+                setState(() {
+                  _karanlikMod = value;
+                });
+              },
+            ),
         '/baklagiller': (context) => Baklagiller(),
         '/kayit': (context) => KayitSayfasi(),
+        '/kullanicilar': (context) => KullaniciListesiSayfasi(),
       },
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
@@ -91,8 +96,7 @@ class HosgeldinizSayfasi extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 188, 144, 230),
               ),
-            ),
-           
+          ),
           ],
         ),
       ),
@@ -113,6 +117,7 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
 
   void _girisYap() {
     if (_formKey.currentState!.validate()) {
+      // TODO: Burada Firebase Auth ile gerçek giriş yapabilirsin
       Navigator.pushReplacementNamed(context, '/anasayfa');
     }
   }
@@ -121,14 +126,18 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
     Navigator.pushNamed(context, '/kayit');
   }
 
+  void _kullaniciListesi() {
+    Navigator.pushNamed(context, '/kullanicilar');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Yemek Vadisi - Giriş"),
-        backgroundColor:  const Color.fromARGB(255, 188, 144, 230),
+        backgroundColor: const Color.fromARGB(255, 188, 144, 230),
       ),
-        backgroundColor: const Color.fromARGB(255, 230, 232, 221),
+      backgroundColor: const Color.fromARGB(255, 230, 232, 221),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -144,8 +153,7 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
                     return 'Kullanıcı adı boş olamaz';
                   }
                   return null;
-                },
-                
+              },
               ),
               TextFormField(
                 controller: _sifreController,
@@ -163,32 +171,42 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
                 onPressed: _girisYap,
                 child: Text("Giriş Yap"),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:  const Color.fromARGB(255, 188, 144, 230),
-                ),
-                
+                  backgroundColor: const Color.fromARGB(255, 188, 144, 230),
+              ),
               ),
               SizedBox(height: 10),
-              TextButton(
-                
+            TextButton(
                 onPressed: _kayitOl,
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  
+                 mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.food_bank, color: const Color.fromARGB(255, 188, 144, 230),),
+                    Icon(
+                      Icons.food_bank,
+                      color: const Color.fromARGB(255, 188, 144, 230),
+                    ),
                     SizedBox(width: 10),
-                    Text("Yeni Hesap Oluştur", style: TextStyle(color:  const Color.fromARGB(255, 188, 144, 230),)),
+                    Text(
+                      "Yeni Hesap Oluştur",
+                      style:
+                          TextStyle(color: const Color.fromARGB(255, 188, 144, 230)),
+                    ),
                   ],
-                ),
-                
+               ),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.deepOrange,
                 ),
-                
+              ),
+              // İstersen kullanıcı listesini görmek için buton:
+              SizedBox(height: 10),
+              TextButton(
+                onPressed: _kullaniciListesi,
+                child: Text("Kullanıcı Listesini Görüntüle"),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blueAccent,
+                ),
               ),
             ],
-          ),
-          
+        ),
         ),
       ),
     );
@@ -206,9 +224,35 @@ class _KayitSayfasiState extends State<KayitSayfasi> {
   final TextEditingController _sifreController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  void _kayitOl() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> _kayitOl() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(), password: _sifreController.text.trim());
+
+      final uid = credential.user!.uid;
+
+      final veritabani = FirebaseDatabase.instance.ref();
+      await veritabani.child("kullanicilar").child(uid).set({
+        "kullaniciAdi": _kullaniciAdController.text.trim(),
+        "email": _emailController.text.trim(),
+        "kayitTarihi": DateTime.now().toIso8601String(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Kayıt başarılı!")),
+      );
+
       Navigator.pushReplacementNamed(context, '/anasayfa');
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Hata: ${e.message}")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Bilinmeyen hata: $e")),
+      );
     }
   }
 
@@ -216,23 +260,25 @@ class _KayitSayfasiState extends State<KayitSayfasi> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Yemek Vadisi - Kayıt Ol"),
+        title: Text("Yeni Hesap Oluştur"),
         backgroundColor: const Color.fromARGB(255, 188, 144, 230),
       ),
-       backgroundColor: const Color.fromARGB(255, 230, 232, 221),
+      backgroundColor: const Color.fromARGB(255, 230, 232, 221),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
+          child: ListView(
+            children: [
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: "E-posta"),
+                decoration: InputDecoration(labelText: "Email"),
+                keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'E-posta boş olamaz';
+                  if (value == null ||
+                      value.isEmpty ||
+                      !value.contains('@')) {
+                    return 'Geçerli bir email giriniz';
                   }
                   return null;
                 },
@@ -252,8 +298,8 @@ class _KayitSayfasiState extends State<KayitSayfasi> {
                 decoration: InputDecoration(labelText: "Şifre"),
                 obscureText: true,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Şifre boş olamaz';
+                  if (value == null || value.length < 6) {
+                    return 'Şifre en az 6 karakter olmalı';
                   }
                   return null;
                 },
@@ -261,7 +307,7 @@ class _KayitSayfasiState extends State<KayitSayfasi> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _kayitOl,
-                child: Text("Hesap Oluştur"),
+                child: Text("Kayıt Ol"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 188, 144, 230),
                 ),
@@ -272,4 +318,54 @@ class _KayitSayfasiState extends State<KayitSayfasi> {
       ),
     );
   }
+}
+
+class KullaniciListesiSayfasi extends StatefulWidget {
+  @override
+  _KullaniciListesiSayfasiState createState() =>
+      _KullaniciListesiSayfasiState();
+}
+
+class _KullaniciListesiSayfasiState extends State<KullaniciListesiSayfasi> {
+  final DatabaseReference _dbRef =
+      FirebaseDatabase.instance.ref().child('kullanicilar');
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Kullanıcı Listesi'),
+        backgroundColor: const Color.fromARGB(255, 188, 144, 230),
+      ),
+      backgroundColor: const Color.fromARGB(255, 230, 232, 221),
+      body: StreamBuilder(
+        stream: _dbRef.onValue,
+        builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+          if (snapshot.hasData &&
+              snapshot.data != null &&
+              snapshot.data!.snapshot.value != null) {
+            Map<dynamic, dynamic> kullanicilar =
+                snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+
+            List<MapEntry> kullaniciListesi = kullanicilar.entries.toList();
+
+            return ListView.builder(
+              itemCount: kullaniciListesi.length,
+              itemBuilder: (context, index) {
+                var kullanici = kullaniciListesi[index].value;
+                return ListTile(
+                  title: Text(kullanici['kullaniciAdi'] ?? "İsimsiz"),
+                  subtitle: Text(kullanici['email'] ?? "Email yok"),
+                );
+              },
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Hata: ${snapshot.error}'));
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
+    );
+   }
 }

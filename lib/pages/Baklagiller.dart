@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:yemekvadisii/pages/Baklagiller.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+
+
+
+
+
+
 
 class Baklagiller extends StatelessWidget {
   final List<Map<String, String>> baklagiller = [
@@ -122,6 +128,8 @@ Yanında pilavla servis edin.'''},
 3. Çökelekleri ekleyin, baharatları ekleyip pişirin. 
 Yanında pilavla servis edebilirsiniz.'''},
   ];
+
+
 
   void googleAramaYap(BuildContext context, String aramaKelimesi) async {
     final url = 'https://www.google.com/search?q=${Uri.encodeComponent(aramaKelimesi)}';
