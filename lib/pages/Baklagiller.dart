@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-
-
-
-
-
-
-
 class Baklagiller extends StatelessWidget {
   final List<Map<String, String>> baklagiller = [
     {'isim': 'Kuru Fasulye', 
@@ -128,27 +121,28 @@ Yanında pilavla servis edin.'''},
 3. Çökelekleri ekleyin, baharatları ekleyip pişirin. 
 Yanında pilavla servis edebilirsiniz.'''},
   ];
+ 
 
-
-
+  // Google arama fonksiyonu
   void googleAramaYap(BuildContext context, String aramaKelimesi) async {
     final url = 'https://www.google.com/search?q=${Uri.encodeComponent(aramaKelimesi)}';
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Google araması açılamadı!"))
+        SnackBar(content: Text("Google araması açılamadı!")),
       );
     }
   }
 
+  // Arama dialogu açma ve uygulama içi filtreleme
   void aramaDialogAc(BuildContext context) {
     TextEditingController aramaController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Google'da Ara"),
+        title: Text("Baklagillerde Ara"),
         content: TextField(
           controller: aramaController,
           decoration: InputDecoration(hintText: "Ne aramak istiyorsun paşam?"),
@@ -165,8 +159,73 @@ Yanında pilavla servis edebilirsiniz.'''},
             ),
             child: Text("Ara"),
             onPressed: () {
+              String aranan = aramaController.text.toLowerCase();
               Navigator.pop(context);
-              googleAramaYap(context, aramaController.text);
+
+              // Yeni sayfa ile filtrelenmiş verileri göster
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Scaffold(
+                    appBar: AppBar(
+                      title: Text("Arama Sonuçları"),
+                      backgroundColor: Color.fromARGB(255, 188, 144, 230),
+                    ),
+                    body: GridView.builder(
+                      padding: EdgeInsets.all(10),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 1,
+                      ),
+                      itemCount: baklagiller
+                          .where((e) => e['isim']!.toLowerCase().contains(aranan))
+                          .length,
+                      itemBuilder: (context, index) {
+                        final filtrelenmis = baklagiller
+                            .where((e) => e['isim']!.toLowerCase().contains(aranan))
+                            .toList();
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TarifDetaySayfasi(
+                                  isim: filtrelenmis[index]['isim']!,
+                                  malzemeler: filtrelenmis[index]['malzemeler']!,
+                                  tarif: filtrelenmis[index]['tarif']!,
+                                  googleAramaYap: googleAramaYap,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color.fromARGB(255, 243, 231, 253),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: Color.fromARGB(255, 172, 120, 203),
+                                  width: 2),
+                            ),
+                            child: Center(
+                              child: Text(
+                                filtrelenmis[index]['isim']!,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 63, 15, 73),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              );
             },
           ),
         ],
@@ -178,7 +237,8 @@ Yanında pilavla servis edebilirsiniz.'''},
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Baklagiller', style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.bold)),
+        title: Text('Baklagiller',
+            style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.bold)),
         backgroundColor: Color.fromARGB(255, 188, 144, 230),
         actions: [
           IconButton(
@@ -206,6 +266,7 @@ Yanında pilavla servis edebilirsiniz.'''},
                     isim: baklagiller[index]['isim']!,
                     malzemeler: baklagiller[index]['malzemeler']!,
                     tarif: baklagiller[index]['tarif']!,
+                    googleAramaYap: googleAramaYap,
                   ),
                 ),
               );
@@ -235,19 +296,99 @@ Yanında pilavla servis edebilirsiniz.'''},
   }
 }
 
-class TarifDetaySayfasi extends StatelessWidget {
+class TarifDetaySayfasi extends StatefulWidget {
   final String isim;
   final String malzemeler;
   final String tarif;
+  final Function(BuildContext, String) googleAramaYap;
 
-  TarifDetaySayfasi({required this.isim, required this.malzemeler, required this.tarif});
+  TarifDetaySayfasi({
+    required this.isim,
+    required this.malzemeler,
+    required this.tarif,
+    required this.googleAramaYap,
+  });
+
+  @override
+  _TarifDetaySayfasiState createState() => _TarifDetaySayfasiState();
+}
+
+class _TarifDetaySayfasiState extends State<TarifDetaySayfasi> {
+  bool favori = false;
+  List<String> yorumlar = [];
+  TextEditingController yorumController = TextEditingController();
+
+  void yorumEkle() {
+    final yorum = yorumController.text.trim();
+    if (yorum.isNotEmpty) {
+      setState(() {
+        yorumlar.add(yorum);
+        yorumController.clear();
+      });
+      Navigator.pop(context);
+    }
+  }
+
+  void yorumDialogAc() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Yorum Ekle"),
+        content: TextField(
+          controller: yorumController,
+          decoration: InputDecoration(hintText: "Yorumunu yaz..."),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            child: Text("İptal"),
+            onPressed: () {
+              yorumController.clear();
+              Navigator.pop(context);
+            },
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color.fromARGB(255, 188, 144, 230),
+              foregroundColor: Colors.white,
+            ),
+            child: Text("Ekle"),
+            onPressed: yorumEkle,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isim, style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.bold)),
+        title: Text(widget.isim,
+            style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.bold)),
         backgroundColor: Color.fromARGB(255, 188, 144, 230),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            tooltip: 'Google\'da Ara',
+            onPressed: () => widget.googleAramaYap(context, widget.isim),
+          ),
+          IconButton(
+            icon: Icon(favori ? Icons.favorite : Icons.favorite_border),
+            color: favori ? Colors.red : Colors.white,
+            tooltip: 'Favori',
+            onPressed: () {
+              setState(() {
+                favori = !favori;
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.comment),
+            tooltip: 'Yorum Ekle',
+            onPressed: yorumDialogAc,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -257,23 +398,53 @@ class TarifDetaySayfasi extends StatelessWidget {
             children: [
               Text(
                 'Malzemeler',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 63, 15, 73)),
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 63, 15, 73)),
               ),
               SizedBox(height: 10),
               Text(
-                malzemeler,
+                widget.malzemeler,
                 style: TextStyle(fontSize: 18, color: Colors.black87),
               ),
               SizedBox(height: 20),
               Text(
                 'Tarif',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 63, 15, 73)),
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 63, 15, 73)),
               ),
               SizedBox(height: 10),
               Text(
-                tarif,
+                widget.tarif,
                 style: TextStyle(fontSize: 18, color: Colors.black87),
               ),
+              if (yorumlar.isNotEmpty) ...[
+                SizedBox(height: 30),
+                Text(
+                  'Yorumlar',
+                  style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 63, 15, 73)),
+                ),
+                SizedBox(height: 10),
+                for (var y in yorumlar)
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 5),
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Color.fromARGB(50, 188, 144, 230),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      y,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+              ]
             ],
           ),
         ),
