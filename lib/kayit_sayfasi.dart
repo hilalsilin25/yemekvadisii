@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-// ignore: depend_on_referenced_packages
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+
+import 'kullanici_listesi_sayfasi.dart';
 
 class KayitSayfasi extends StatefulWidget {
   @override
@@ -14,38 +15,57 @@ class _KayitSayfasiState extends State<KayitSayfasi> {
   final TextEditingController _sifreController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
+  
   Future<void> _kayitOl() async {
-    try {
-      final credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _sifreController.text.trim(),
-      );
+  try {
+    print("Kayıt işlemi başladı.");
 
-      final uid = credential.user!.uid;
+    final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _sifreController.text.trim(),
+    );
 
-      final veritabani = FirebaseDatabase.instance.ref();
-      await veritabani.child("kullanicilar").child(uid).set({
-        "kullaniciAdi": _kullaniciAdiController.text.trim(),
-        "email": _emailController.text.trim(),
-        "kayitTarihi": DateTime.now().toIso8601String(),
-      });
+    print("Kullanıcı oluşturuldu: ${credential.user!.uid}");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Kayıt başarılı!")),
-      );
+    final uid = credential.user!.uid;
 
-      Navigator.pop(context); // Giriş sayfasına dön
+    final ref = FirebaseDatabase.instance.ref().child("kullanicilar").child(uid);
 
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Hata: ${e.message}")),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Bilinmeyen hata: $e")),
-      );
-    }
+    await ref.set({
+      "kullaniciAdi": _kullaniciAdiController.text.trim(),
+      "email": _emailController.text.trim(),
+      "kayitTarihi": DateTime.now().toIso8601String(),
+    });
+
+    print("Veri veritabanına kaydedildi.");
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Kayıt başarılı!")),
+    );
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => KullaniciListesiSayfasi()),
+    );
+  } on FirebaseAuthException catch (e) {
+    print("FirebaseAuth hatası: ${e.message}");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Hata: ${e.message}")),
+    );
+  } catch (e) {
+    print("Bilinmeyen hata: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Bilinmeyen hata: $e")),
+    );
+  }
+}
+
+  @override
+  void dispose() {
+    _kullaniciAdiController.dispose();
+    _sifreController.dispose();
+    _emailController.dispose();
+    super.dispose();
   }
 
   @override

@@ -51,7 +51,6 @@ class _AnaSayfaState extends State<AnaSayfa> {
               accountName: Text("Hilal Silin"),
               accountEmail: Text("hilal.silin25@gmail.com"),
               currentAccountPicture: CircleAvatar(
-                backgroundImage: AssetImage("assets/images/atakan.jpg"),
               ),
               decoration: BoxDecoration(color: const Color.fromARGB(255, 188, 144, 230),),
             ),

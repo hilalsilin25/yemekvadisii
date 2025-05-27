@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:yemekvadisii/pages/AnaSayfa.dart';
+
 
 import 'package:yemekvadisii/pages/main.dart';
 

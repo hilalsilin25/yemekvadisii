@@ -37,12 +37,11 @@ dependencies:
 
   firebase_auth: ^5.5.4
   firebase_database: ^11.3.6
-  js: ^0.6.7
-  url_launcher: ^6.2.5
-  just_audio: ^0.9.18
+  js: ^0.7.1
+  url_launcher: ^6.1.7
+  just_audio: ^0.10.3
   firebase_core: ^3.13.1
   google_fonts: ^6.2.1
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

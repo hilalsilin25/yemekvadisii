@@ -18,35 +18,32 @@ class _KullaniciListesiSayfasiState extends State<KullaniciListesiSayfasi> {
   }
 
   void _verileriGetir() {
-  
-  _ref.onValue.listen((event) {
-    print("Data snapshot: ${event.snapshot.value}");  // BURAYA BAK!
+    _ref.onValue.listen((event) {
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
 
-    final data = event.snapshot.value as Map<dynamic, dynamic>?;
-
-    if (data != null) {
-      List<Map<dynamic, dynamic>> kullaniciListesi = [];
-      data.forEach((key, value) {
-        kullaniciListesi.add({
-          "id": key,
-          "kullaniciAdi": value['kullaniciAdi'],
-          "email": value['email'],
-          "kayitTarihi": value['kayitTarihi'],
+      if (data != null) {
+        List<Map<dynamic, dynamic>> kullaniciListesi = [];
+        data.forEach((key, value) {
+          kullaniciListesi.add({
+            "id": key,
+            "kullaniciAdi": value['kullaniciAdi'],
+            "email": value['email'],
+            "kayitTarihi": value['kayitTarihi'],
+          });
         });
-      });
 
-      setState(() {
-        _kullanicilar = kullaniciListesi;
-        _yukleniyor = false;
-      });
-    } else {
-      setState(() {
-        _kullanicilar = [];
-        _yukleniyor = false;
-      });
-    }
-  });
-}
+        setState(() {
+          _kullanicilar = kullaniciListesi;
+          _yukleniyor = false;
+        });
+      } else {
+        setState(() {
+          _kullanicilar = [];
+          _yukleniyor = false;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +66,11 @@ class _KullaniciListesiSayfasiState extends State<KullaniciListesiSayfasi> {
                       subtitle: Text(kullanici['email'] ?? ''),
                       trailing: Text(
                         kullanici['kayitTarihi'] != null
-                            ? DateTime.tryParse(kullanici['kayitTarihi'])?.toLocal().toString().split(' ')[0] ?? ''
+                            ? DateTime.tryParse(kullanici['kayitTarihi'])
+                                    ?.toLocal()
+                                    .toString()
+                                    .split(' ')[0] ??
+                                ''
                             : '',
                       ),
                     );
