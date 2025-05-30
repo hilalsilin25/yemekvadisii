@@ -1,7 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class Pilavlar extends StatelessWidget {
+class Pilavlar extends StatefulWidget {
+  @override
+  _PilavlarState createState() => _PilavlarState();
+}
+
+// Arama sayfası için basit SearchDelegate
+class PilavArama extends SearchDelegate<String> {
+  final List<String> pilavIsimleri;
+
+  PilavArama(this.pilavIsimleri);
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      if (query.isNotEmpty)
+        IconButton(
+          icon: Icon(Icons.clear),
+          onPressed: () => query = '',
+        ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () => close(context, ''),
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    final results = pilavIsimleri
+        .where((p) => p.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+
+    return ListView(
+      children: results
+          .map((p) => ListTile(
+                title: Text(p),
+                onTap: () => close(context, p),
+              ))
+          .toList(),
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final suggestions = pilavIsimleri
+        .where((p) => p.toLowerCase().startsWith(query.toLowerCase()))
+        .toList();
+
+    return ListView(
+      children: suggestions
+          .map((p) => ListTile(
+                title: Text(p),
+                onTap: () {
+                  query = p;
+                  showResults(context);
+                },
+              ))
+          .toList(),
+    );
+  }
+}
+
+class _PilavlarState extends State<Pilavlar> {
   final List<Map<String, String>> pilavlar = [
     {
       'isim': 'Şehriyeli Pirinç Pilavı',
@@ -69,10 +135,69 @@ Yapılışı:
 Eti kavurup suyunu çekmesini bekle.
 Pirinçleri ekleyip 5 dakika kavur.
 Sıcak et suyunu ve baharatları ekle.
-Kısık ateşte pişir. Dinlendir ve harmanla.
+Kısık ateşte piş. Dinlendir ve harmanla.
 Doyurucu ve nefis bir ana yemek olur!''',
     },
   ];
+
+  List<bool> expandedStatus = [];
+
+  List<List<Map<String, dynamic>>> yorumlarListesi = [];
+  List<TextEditingController> yorumControllerListesi = [];
+
+  @override
+  void initState() {
+    super.initState();
+    expandedStatus = List<bool>.filled(pilavlar.length, false);
+    yorumlarListesi = List.generate(pilavlar.length, (_) => []);
+    yorumControllerListesi = List.generate(pilavlar.length, (_) => TextEditingController());
+  }
+
+  void toggleExpanded(int index) {
+    setState(() {
+      expandedStatus[index] = !expandedStatus[index];
+    });
+  }
+
+  void yorumEkle(int index) {
+    final text = yorumControllerListesi[index].text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      yorumlarListesi[index].add({'text': text, 'begenme': 0});
+      yorumControllerListesi[index].clear();
+    });
+  }
+
+  void yorumSil(int pilavIndex, int yorumIndex) {
+    setState(() {
+      yorumlarListesi[pilavIndex].removeAt(yorumIndex);
+    });
+  }
+
+  void yorumBegen(int pilavIndex, int yorumIndex) {
+    setState(() {
+      yorumlarListesi[pilavIndex][yorumIndex]['begenme']++;
+    });
+  }
+
+  @override
+  void dispose() {
+    for (var c in yorumControllerListesi) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _launchGoogle(String aramaKelimesi) async {
+    final query = Uri.encodeComponent('$aramaKelimesi tarifi');
+    final Uri url = Uri.parse('https://www.google.com/search?q=$query');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google açılamadı!')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,179 +205,158 @@ Doyurucu ve nefis bir ana yemek olur!''',
       length: pilavlar.length,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            'Pilavlar',
-            style: TextStyle( color: Colors.grey.shade200, ),
-          ),
-          backgroundColor: Color(0xFF9575CD), // Lila rengi
+          title: Text('Pilavlar', style: TextStyle(color: Colors.grey.shade200)),
+          backgroundColor: Color(0xFF9575CD),
           actions: [
             IconButton(
-              icon: Icon(Icons.search, color: Colors.white),
-              onPressed: () {
-                showSearch(
+              icon: Icon(Icons.search),
+              onPressed: () async {
+                final result = await showSearch<String>(
                   context: context,
-                  delegate: PilavSearchDelegate(pilavlar),
+                  delegate: PilavArama(pilavlar.map((e) => e['isim']!).toList()),
+                );
+                if (result != null && result.isNotEmpty) {
+                  final index = pilavlar.indexWhere((p) => p['isim'] == result);
+                  if (index != -1) {
+                    DefaultTabController.of(context)?.animateTo(index);
+                  }
+                }
+              },
+              tooltip: 'Pilav Ara',
+            ),
+            Builder(
+              builder: (context) {
+                final tabController = DefaultTabController.of(context);
+                final currentIndex = tabController?.index ?? 0;
+                return IconButton(
+                  icon: Icon(Icons.public),
+                  onPressed: () => _launchGoogle(pilavlar[currentIndex]['isim']!),
+                  tooltip: '${pilavlar[currentIndex]['isim']} tarifini Google\'da ara',
                 );
               },
             ),
-            IconButton(
-              icon: Icon(Icons.public, color: Colors.white),
-              onPressed: () async {
-                final Uri googleUrl = Uri.parse('https://www.google.com/search?q=pilav+tarifleri');
-                if (await canLaunchUrl(googleUrl)) {
-                  await launchUrl(googleUrl);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Google açılamadı aslanım.'))
-                  );
-                }
-              },
-            ),
           ],
+          bottom: TabBar(
+            indicatorColor: Color(0xFF512DA8),
+            labelColor: Color(0xFF512DA8),
+            unselectedLabelColor: Colors.black,
+            tabs: pilavlar.map((p) => Tab(text: p['isim'])).toList(),
+          ),
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: TabBarView(
-                children: pilavlar.map((pilav) {
-                  return Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Malzemeler',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF512DA8), // Koyu mor
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            pilav['tarif']!.split("Yapılışı:")[0],
-                            style: TextStyle(fontSize: 18, color: Colors.black87),
-                          ),
-                          SizedBox(height: 20),
-                          Text(
-                            'Tarif',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF512DA8), // Koyu mor
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            pilav['tarif']!.split("Yapılışı:")[1],
-                            style: TextStyle(fontSize: 18, color: Colors.black87),
-                          ),
-                        ],
+        body: TabBarView(
+          children: pilavlar.asMap().entries.map((entry) {
+            int index = entry.key;
+            Map<String, String> pilav = entry.value;
+
+            bool isExpanded = expandedStatus[index];
+
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: InkWell(
+                onTap: () => toggleExpanded(index),
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.shade400,
+                        blurRadius: 6,
+                        offset: Offset(0, 3),
                       ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            Container(
-              color: Color(0xFF9575CD), // Lila rengi
-              child: TabBar(
-                indicatorColor: Color(0xFF512DA8), // Koyu mor
-                labelColor: Color(0xFF512DA8), // Koyu mor yazı
-                unselectedLabelColor: Colors.black, // Seçilmemiş tab yazı rengi siyah
-                tabs: pilavlar.map((pilav) {
-                  return Tab(
-                    text: pilav['isim'],
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class PilavSearchDelegate extends SearchDelegate {
-  final List<Map<String, String>> pilavlar;
-
-  PilavSearchDelegate(this.pilavlar);
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, null);
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    final results = pilavlar.where((pilav) {
-      return pilav['isim']!.toLowerCase().contains(query.toLowerCase());
-    }).toList();
-
-    return ListView(
-      children: results.map((pilav) {
-        return ListTile(
-          title: Text(pilav['isim']!),
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(pilav['isim']!),
-                content: SingleChildScrollView(
-                  child: Text(
-                    pilav['tarif']! ,
-                    style: TextStyle(fontSize: 16),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pilav['isim']!,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF512DA8),
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        pilav['tarif']!.split("Yapılışı:")[0],
+                        style: TextStyle(fontSize: 18, color: Colors.black87),
+                      ),
+                      if (isExpanded) ...[
+                        SizedBox(height: 16),
+                        Divider(color: Color(0xFF512DA8)),
+                        Text(
+                          'Tarif:',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF512DA8),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          pilav['tarif']!.split("Yapılışı:")[1],
+                          style: TextStyle(fontSize: 18),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Yorumlar:',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF512DA8),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        ...yorumlarListesi[index].asMap().entries.map((yorumEntry) {
+                          int yorumIndex = yorumEntry.key;
+                          var yorum = yorumEntry.value;
+                          return Card(
+                            margin: EdgeInsets.symmetric(vertical: 4),
+                            child: ListTile(
+                              title: Text(yorum['text']),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('${yorum['begenme']}'),
+                                  IconButton(
+                                    icon: Icon(Icons.thumb_up, color: Colors.purple),
+                                    onPressed: () => yorumBegen(index, yorumIndex),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => yorumSil(index, yorumIndex),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        TextField(
+                          controller: yorumControllerListesi[index],
+                          decoration: InputDecoration(
+                            labelText: 'Yorum ekle',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF9575CD)),
+                          onPressed: () => yorumEkle(index),
+                          child: Text('Yorum Gönder'),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text('Kapat'),
-                  ),
-                ],
               ),
             );
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    final suggestions = pilavlar.where((pilav) {
-      return pilav['isim']!.toLowerCase().contains(query.toLowerCase());
-    }).toList();
-
-    return ListView(
-      children: suggestions.map((pilav) {
-        return ListTile(
-          title: Text(pilav['isim']!),
-          onTap: () {
-            query = pilav['isim']!;
-            showResults(context);
-          },
-        );
-      }).toList(),
+          }).toList(),
+        ),
+      ),
     );
   }
 }

@@ -7,12 +7,9 @@ class Tatlilar extends StatefulWidget {
 }
 
 class _TatlilarState extends State<Tatlilar> {
-  // Favori durumunu geçici tutalım (uygulama kapanınca sıfırlanacak)
   Set<String> favoriler = {};
-  // Yorumları geçici tutalım
   Map<String, List<String>> yorumlar = {};
 
-  // Örnek tatlılar listesi
   final List<Map<String, String>> tatlilar = [
     {
       'isim': 'Baklava',
@@ -404,8 +401,9 @@ Yapılışı:
 Kaç kişilik: 6 kişilik
 Afiyet olsun!'''
     },
-  ];
-    void toggleFavori(String isim) {
+   ];
+
+  void toggleFavori(String isim) {
     setState(() {
       if (favoriler.contains(isim)) {
         favoriler.remove(isim);
@@ -419,6 +417,12 @@ Afiyet olsun!'''
     setState(() {
       yorumlar.putIfAbsent(isim, () => []);
       yorumlar[isim]!.add(yorum);
+    });
+  }
+
+  void yorumSil(String isim, String yorum) {
+    setState(() {
+      yorumlar[isim]?.remove(yorum);
     });
   }
 
@@ -460,24 +464,35 @@ Afiyet olsun!'''
               children: [
                 Text(tarif, style: TextStyle(fontSize: 16)),
                 SizedBox(height: 20),
-                Text('Yorumlar:', style: TextStyle(fontWeight: FontWeight.bold)),
-                ...?yorumlar[isim]?.map((y) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(child: Text('- $y')),
-                          IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              setStateDialog(() {
-                                yorumlar[isim]!.remove(y);
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    )),
+                Text('Yorumlar:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                SizedBox(height: 8),
+                if (yorumlar[isim] != null && yorumlar[isim]!.isNotEmpty)
+                  ...yorumlar[isim]!.map((y) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(child: Text('- $y')),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                setStateDialog(() {
+                                  yorumSil(isim, y);
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ))
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Henüz yorum yok.',
+                      style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                    ),
+                  ),
+                SizedBox(height: 12),
                 TextField(
                   controller: yorumController,
                   decoration: InputDecoration(
@@ -488,15 +503,19 @@ Afiyet olsun!'''
                   maxLines: 3,
                 ),
                 SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    if (yorumController.text.trim().isNotEmpty) {
-                      yorumEkle(isim, yorumController.text.trim());
-                      yorumController.clear();
-                      setStateDialog(() {});
-                    }
-                  },
-                  child: Text('Yorum Ekle'),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final trimmed = yorumController.text.trim();
+                      if (trimmed.isNotEmpty) {
+                        yorumEkle(isim, trimmed);
+                        yorumController.clear();
+                        setStateDialog(() {});
+                      }
+                    },
+                    child: Text('Yorum Ekle'),
+                  ),
                 ),
               ],
             ),
@@ -524,7 +543,14 @@ Afiyet olsun!'''
             onPressed: () {
               showSearch(
                 context: context,
-                delegate: TatliSearchDelegate(tatlilar, favoriler, yorumlar, toggleFavori, yorumEkle),
+                delegate: TatliSearchDelegate(
+                  tatlilar,
+                  favoriler,
+                  yorumlar,
+                  toggleFavori,
+                  yorumEkle,
+                  detayDialog,
+                ),
               );
             },
           ),
@@ -536,54 +562,37 @@ Afiyet olsun!'''
                 await launchUrl(googleUrl);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Google açılamadı paşam.')),
+                  SnackBar(content: Text('Google açılamadı.')),
                 );
               }
             },
           ),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                Color backgroundColor = Colors.grey.shade200;
-                String isim = tatlilar[index]['isim']!;
-                bool isFavori = favoriler.contains(isim);
-                return Card(
-                  margin: EdgeInsets.all(8),
-                  elevation: 4,
-                  color: backgroundColor,
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.cake,
-                      color: const Color.fromARGB(255, 98, 19, 113),
-                    ),
-                    title: Text(
-                      isim,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(
-                        isFavori ? Icons.favorite : Icons.favorite_border,
-                        color: isFavori ? Colors.red : Colors.grey,
-                      ),
-                      onPressed: () {
-                        toggleFavori(isim);
-                      },
-                    ),
-                    onTap: () => detayDialog(context, index),
-                  ),
-                );
-              },
-              childCount: tatlilar.length,
+      body: ListView.builder(
+        itemCount: tatlilar.length,
+        itemBuilder: (context, index) {
+          String isim = tatlilar[index]['isim']!;
+          bool isFavori = favoriler.contains(isim);
+          return Card(
+            margin: EdgeInsets.all(8),
+            elevation: 4,
+            color: Colors.grey.shade200,
+            child: ListTile(
+              leading: Icon(Icons.cake, color: Color.fromARGB(255, 98, 19, 113)),
+              title: Text(
+                isim,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              trailing: IconButton(
+                icon: Icon(isFavori ? Icons.favorite : Icons.favorite_border,
+                    color: isFavori ? Colors.red : Colors.grey),
+                onPressed: () => toggleFavori(isim),
+              ),
+              onTap: () => detayDialog(context, index),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -595,105 +604,30 @@ class TatliSearchDelegate extends SearchDelegate {
   final Map<String, List<String>> yorumlar;
   final Function(String) toggleFavori;
   final Function(String, String) yorumEkle;
+  final Function(BuildContext, int) detayDialog;
 
-  TatliSearchDelegate(this.tatlilar, this.favoriler, this.yorumlar, this.toggleFavori, this.yorumEkle);
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      )
-    ];
-  }
+  TatliSearchDelegate(
+    this.tatlilar,
+    this.favoriler,
+    this.yorumlar,
+    this.toggleFavori,
+    this.yorumEkle,
+    this.detayDialog,
+  );
 
   @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.arrow_back),
-      onPressed: () => close(context, null),
-    );
-  }
-
-  void detayDialog(BuildContext context, int index) {
-    String isim = tatlilar[index]['isim']!;
-    String tarif = tatlilar[index]['tarif']!;
-    TextEditingController yorumController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setStateDialog) => AlertDialog(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                isim,
-                style: TextStyle(color: Colors.purple[900], fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: Icon(Icons.search, color: Colors.blue),
-                onPressed: () async {
-                  final query = Uri.encodeComponent('$isim tarifi');
-                  final url = Uri.parse('https://www.google.com/search?q=$query');
-                  if (await canLaunchUrl(url)) {
-                    await launchUrl(url);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Google araması açılamadı')),
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(tarif, style: TextStyle(fontSize: 16)),
-                SizedBox(height: 20),
-                Text('Yorumlar:', style: TextStyle(fontWeight: FontWeight.bold)),
-                ...?yorumlar[isim]?.map((y) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text('- $y'),
-                    )),
-                TextField(
-                  controller: yorumController,
-                  decoration: InputDecoration(
-                    labelText: 'Yorum ekle',
-                    border: OutlineInputBorder(),
-                  ),
-                  minLines: 1,
-                  maxLines: 3,
-                ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    if (yorumController.text.trim().isNotEmpty) {
-                      yorumEkle(isim, yorumController.text.trim());
-                      yorumController.clear();
-                      setStateDialog(() {});
-                    }
-                  },
-                  child: Text('Yorum Ekle'),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Kapat', style: TextStyle(color: Colors.purple[900])),
-            ),
-          ],
+  List<Widget> buildActions(BuildContext context) => [
+        IconButton(
+          icon: Icon(Icons.clear),
+          onPressed: () => query = '',
         ),
-      ),
-    );
-  }
+      ];
+
+  @override
+  Widget buildLeading(BuildContext context) => IconButton(
+        icon: Icon(Icons.arrow_back),
+        onPressed: () => close(context, null),
+      );
 
   @override
   Widget buildResults(BuildContext context) {
@@ -701,28 +635,36 @@ class TatliSearchDelegate extends SearchDelegate {
         .where((tatli) => tatli['isim']!.toLowerCase().contains(query.toLowerCase()))
         .toList();
 
-    return ListView(
-      children: results.map((tatli) {
-        int index = tatlilar.indexOf(tatli);
+    if (results.isEmpty) {
+      return Center(child: Text('Sonuç bulunamadı.'));
+    }
+
+    return ListView.builder(
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final tatli = results[index];
+        int originalIndex = tatlilar.indexOf(tatli);
         return ListTile(
           title: Text(tatli['isim']!),
           onTap: () {
-            detayDialog(context, index);
+            detayDialog(context, originalIndex);
+            close(context, null);
           },
         );
-      }).toList(),
+      },
     );
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
     final suggestions = tatlilar
-        .where((tatli) => tatli['isim']!.toLowerCase().contains(query.toLowerCase()))
+        .where((tatli) => tatli['isim']!.toLowerCase().startsWith(query.toLowerCase()))
         .toList();
 
-    return ListView(
-      children: suggestions.map((tatli) {
-        int index = tatlilar.indexOf(tatli);
+    return ListView.builder(
+      itemCount: suggestions.length,
+      itemBuilder: (context, index) {
+        final tatli = suggestions[index];
         return ListTile(
           title: Text(tatli['isim']!),
           onTap: () {
@@ -730,9 +672,7 @@ class TatliSearchDelegate extends SearchDelegate {
             showResults(context);
           },
         );
-      }).toList(),
+      },
     );
   }
 }
- 
- 
