@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'tarifler.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-final List<String> corbalar = [
+
+final List<String> tumCorbalar = [
   'Mercimek Çorbası',
   'Tarator Çorbası',
   'Yoğurtlu Çorba',
@@ -19,25 +19,21 @@ final List<String> corbalar = [
   'Mantarlı Çorba',
   'Çılbır Çorbası',
 ];
+class CorbalarSayfasi extends StatefulWidget {
+  @override
+  _CorbalarSayfasiState createState() => _CorbalarSayfasiState();
+}
 
-class CorbalarSayfasi extends StatelessWidget {
-  void googleAramaYap(BuildContext context, String kelime) async {
-    final url = 'https://www.google.com/search?q=${Uri.encodeComponent(kelime)}';
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Google araması başlatılamadı!")),
-      );
-    }
-  }
+class _CorbalarSayfasiState extends State<CorbalarSayfasi> {
+  List<String> filtreliCorbalar = List.from(tumCorbalar);
+  List<String> favoriler = [];
 
   void aramaDialogAc(BuildContext context) {
     TextEditingController aramaController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Google'da Ara"),
+        title: Text("Çorba Ara"),
         content: TextField(
           controller: aramaController,
           decoration: InputDecoration(hintText: "Bir çorba mı arıyorsun paşam?"),
@@ -49,8 +45,13 @@ class CorbalarSayfasi extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
+              String aranan = aramaController.text.toLowerCase();
+              setState(() {
+                filtreliCorbalar = tumCorbalar
+                    .where((c) => c.toLowerCase().contains(aranan))
+                    .toList();
+              });
               Navigator.pop(context);
-              googleAramaYap(context, aramaController.text);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.purple[300],
@@ -60,6 +61,16 @@ class CorbalarSayfasi extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void favoriDegistir(String corba) {
+    setState(() {
+      if (favoriler.contains(corba)) {
+        favoriler.remove(corba);
+      } else {
+        favoriler.add(corba);
+      }
+    });
   }
 
   @override
@@ -90,36 +101,54 @@ class CorbalarSayfasi extends StatelessWidget {
           crossAxisSpacing: 12,
           childAspectRatio: 1,
         ),
-        itemCount: corbalar.length,
+        itemCount: filtreliCorbalar.length,
         itemBuilder: (context, index) {
+          final corba = filtreliCorbalar[index];
+          final favoriMi = favoriler.contains(corba);
+
           return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => TariflerSayfasi(corbaAdi: corbalar[index]),
+                  builder: (context) => TariflerSayfasi(corbaAdi: corba),
                 ),
               );
             },
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey.shade200, // Hafif gri iç renk
+                color: Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.purple[900]!, // Koyu mor kenarlık
+                  color: Colors.purple[900]!,
                   width: 2.5,
                 ),
               ),
-              child: Center(
-                child: Text(
-                  corbalar[index],
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple[900], // Koyu mor yazı
+              child: Stack(
+                children: [
+                  Center(
+                    child: Text(
+                      corba,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple[900],
+                      ),
+                    ),
                   ),
-                ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.favorite,
+                        color: favoriMi ? Colors.red : Colors.grey,
+                      ),
+                      onPressed: () => favoriDegistir(corba),
+                    ),
+                  ),
+                ],
               ),
             ),
           );

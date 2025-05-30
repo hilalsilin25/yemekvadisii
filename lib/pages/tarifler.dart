@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class TariflerSayfasi extends StatelessWidget {
+class TariflerSayfasi extends StatefulWidget {
   final String corbaAdi;
 
   TariflerSayfasi({required this.corbaAdi});
+
+  @override
+  _TariflerSayfasiState createState() => _TariflerSayfasiState();
+}
+
+class _TariflerSayfasiState extends State<TariflerSayfasi> {
+  final TextEditingController yorumController = TextEditingController();
+
+  // Yorumlar: her yorum bir metin ve beğeni durumu içerir
+  List<_Yorum> yorumlar = [];
 
   final Map<String, Map<String, String>> tarifler = {
   'Mercimek Çorbası': {
@@ -282,67 +293,166 @@ Afiyet Olsun efendimmm
   '''
 },
   };
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text(
-        corbaAdi, // Çorba ismi beyaz renkte olacak
-        style: TextStyle(
-          color: Colors.white, // Çorba ismi beyaz
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
+   void googleAramaYap(String kelime) async {
+    final url = 'https://www.google.com/search?q=${Uri.encodeComponent(kelime)}';
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    }
+  }
+
+  void yorumEkle() {
+    final yorum = yorumController.text.trim();
+    if (yorum.isNotEmpty) {
+      setState(() {
+        yorumlar.add(_Yorum(text: yorum));
+        yorumController.clear();
+      });
+    }
+  }
+
+  void yorumSil(int index) {
+    setState(() {
+      yorumlar.removeAt(index);
+    });
+  }
+
+  void yorumBegeniDegistir(int index) {
+    setState(() {
+      yorumlar[index].begeni = !yorumlar[index].begeni;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final corbaAdi = widget.corbaAdi;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          corbaAdi,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 188, 144, 230),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search, color: Colors.white),
+            onPressed: () => googleAramaYap("$corbaAdi tarifi"),
+          )
+        ],
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Malzemeler:',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: const Color.fromARGB(255, 92, 58, 120),
+                  fontFamily: 'Roboto',
+                ),
+              ),
+              Text(
+                '\n${tarifler[corbaAdi]?['Malzemeler'] ?? 'Veri yok'}',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontFamily: 'Roboto',
+                ),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Tarif:',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: const Color.fromARGB(255, 92, 58, 120),
+                  fontFamily: 'Roboto',
+                ),
+              ),
+              Text(
+                '\n${tarifler[corbaAdi]?['Tarif'] ?? 'Veri yok'}',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontFamily: 'Roboto',
+                ),
+              ),
+              SizedBox(height: 30),
+              Divider(thickness: 1.5),
+              Text(
+                'Yorum Ekle:',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple[800],
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: yorumController,
+                      decoration: InputDecoration(hintText: "Yorumunuzu yazın..."),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.send, color: Colors.purple[800]),
+                    onPressed: yorumEkle,
+                  )
+                ],
+              ),
+              if (yorumlar.isNotEmpty) ...[
+                SizedBox(height: 20),
+                Text(
+                  'Yorumlar:',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: yorumlar.length,
+                  itemBuilder: (context, index) {
+                    final yorum = yorumlar[index];
+                    return ListTile(
+                      leading: IconButton(
+                        icon: Icon(
+                          yorum.begeni ? Icons.favorite : Icons.favorite_border,
+                          color: yorum.begeni ? Colors.red : Colors.grey,
+                        ),
+                        onPressed: () => yorumBegeniDegistir(index),
+                      ),
+                      title: Text(yorum.text),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.grey),
+                        onPressed: () => yorumSil(index),
+                      ),
+                    );
+                  },
+                ),
+              ]
+            ],
+          ),
         ),
       ),
-      backgroundColor: const Color.fromARGB(255, 188, 144, 230), // Lila AppBar arka plan
-    ),
-    body: Padding(
-      padding: EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Malzemeler:',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 92, 58, 120), // Koyu mor başlık
-                fontFamily: 'Roboto',
-              ),
-            ),
-            Text(
-              '\n${tarifler[corbaAdi]?['Malzemeler']}',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.normal,
-                color: Colors.black, // İçerik siyah olacak
-                fontFamily: 'Roboto',
-              ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Tarif:',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 92, 58, 120), // Koyu mor başlık
-                fontFamily: 'Roboto',
-              ),
-            ),
-            Text(
-              '\n${tarifler[corbaAdi]?['Tarif']}',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.normal,
-                color: Colors.black, // İçerik siyah olacak
-                fontFamily: 'Roboto',
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
+    );
+  }
 }
+
+class _Yorum {
+  final String text;
+  bool begeni;
+
+  _Yorum({required this.text, this.begeni = false});
 }

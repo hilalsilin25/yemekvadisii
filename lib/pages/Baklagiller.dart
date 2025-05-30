@@ -309,24 +309,37 @@ class TarifDetaySayfasi extends StatefulWidget {
     required this.googleAramaYap,
   });
 
-  @override
+   @override
   _TarifDetaySayfasiState createState() => _TarifDetaySayfasiState();
 }
 
 class _TarifDetaySayfasiState extends State<TarifDetaySayfasi> {
   bool favori = false;
-  List<String> yorumlar = [];
+  List<Map<String, dynamic>> yorumlar = []; // yorum + beğeni
+
   TextEditingController yorumController = TextEditingController();
 
   void yorumEkle() {
     final yorum = yorumController.text.trim();
     if (yorum.isNotEmpty) {
       setState(() {
-        yorumlar.add(yorum);
+        yorumlar.add({'metin': yorum, 'begenildi': false});
         yorumController.clear();
       });
       Navigator.pop(context);
     }
+  }
+
+  void yorumSil(int index) {
+    setState(() {
+      yorumlar.removeAt(index);
+    });
+  }
+
+  void yorumBegenToggle(int index) {
+    setState(() {
+      yorumlar[index]['begenildi'] = !yorumlar[index]['begenildi'];
+    });
   }
 
   void yorumDialogAc() {
@@ -364,89 +377,76 @@ class _TarifDetaySayfasiState extends State<TarifDetaySayfasi> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isim,
-            style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.bold)),
+        title: Text(widget.isim),
         backgroundColor: Color.fromARGB(255, 188, 144, 230),
         actions: [
           IconButton(
             icon: Icon(Icons.search),
-            tooltip: 'Google\'da Ara',
             onPressed: () => widget.googleAramaYap(context, widget.isim),
           ),
           IconButton(
             icon: Icon(favori ? Icons.favorite : Icons.favorite_border),
-            color: favori ? Colors.red : Colors.white,
-            tooltip: 'Favori',
             onPressed: () {
               setState(() {
                 favori = !favori;
               });
             },
           ),
-          IconButton(
-            icon: Icon(Icons.comment),
-            tooltip: 'Yorum Ekle',
-            onPressed: yorumDialogAc,
-          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Malzemeler',
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 63, 15, 73)),
-              ),
-              SizedBox(height: 10),
-              Text(
-                widget.malzemeler,
-                style: TextStyle(fontSize: 18, color: Colors.black87),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Tarif',
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 63, 15, 73)),
-              ),
-              SizedBox(height: 10),
-              Text(
-                widget.tarif,
-                style: TextStyle(fontSize: 18, color: Colors.black87),
-              ),
-              if (yorumlar.isNotEmpty) ...[
-                SizedBox(height: 30),
-                Text(
-                  'Yorumlar',
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 63, 15, 73)),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Malzemeler", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            SizedBox(height: 8),
+            Text(widget.malzemeler),
+            SizedBox(height: 16),
+            Text("Tarif", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            SizedBox(height: 8),
+            Text(widget.tarif),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Yorumlar", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                IconButton(
+                  icon: Icon(Icons.add_comment),
+                  onPressed: yorumDialogAc,
                 ),
-                SizedBox(height: 10),
-                for (var y in yorumlar)
-                  Container(
-                    margin: EdgeInsets.symmetric(vertical: 5),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Color.fromARGB(50, 188, 144, 230),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      y,
-                      style: TextStyle(fontSize: 16),
+              ],
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: yorumlar.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.symmetric(vertical: 5),
+                  child: ListTile(
+                    title: Text(yorumlar[index]['metin']),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            yorumlar[index]['begenildi'] ? Icons.favorite : Icons.favorite_border,
+                            color: yorumlar[index]['begenildi'] ? Colors.red : null,
+                          ),
+                          onPressed: () => yorumBegenToggle(index),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () => yorumSil(index),
+                        ),
+                      ],
                     ),
                   ),
-              ]
-            ],
-          ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

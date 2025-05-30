@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yemekvadisii/pages/Tatlilar.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 
 class Tatlilar extends StatefulWidget {
   @override
@@ -9,6 +7,12 @@ class Tatlilar extends StatefulWidget {
 }
 
 class _TatlilarState extends State<Tatlilar> {
+  // Favori durumunu geçici tutalım (uygulama kapanınca sıfırlanacak)
+  Set<String> favoriler = {};
+  // Yorumları geçici tutalım
+  Map<String, List<String>> yorumlar = {};
+
+  // Örnek tatlılar listesi
   final List<Map<String, String>> tatlilar = [
     {
       'isim': 'Baklava',
@@ -401,14 +405,7 @@ Kaç kişilik: 6 kişilik
 Afiyet olsun!'''
     },
   ];
-  
- 
-  // Favori durumunu geçici tutalım (uygulama kapanınca sıfırlanacak)
-  Set<String> favoriler = {};
-  // Yorumları geçici tutalım
-  Map<String, List<String>> yorumlar = {};
-
-  void toggleFavori(String isim) {
+    void toggleFavori(String isim) {
     setState(() {
       if (favoriler.contains(isim)) {
         favoriler.remove(isim);
@@ -428,7 +425,6 @@ Afiyet olsun!'''
   void detayDialog(BuildContext context, int index) {
     String isim = tatlilar[index]['isim']!;
     String tarif = tatlilar[index]['tarif']!;
-    bool isFavori = favoriler.contains(isim);
     TextEditingController yorumController = TextEditingController();
 
     showDialog(
@@ -440,20 +436,7 @@ Afiyet olsun!'''
             children: [
               Text(
                 isim,
-                style: TextStyle(
-                    color: Colors.purple[900], fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: Icon(
-                  isFavori ? Icons.favorite : Icons.favorite_border,
-                  color: isFavori ? Colors.red : Colors.grey,
-                ),
-                onPressed: () {
-                  setStateDialog(() {
-                    toggleFavori(isim);
-                    isFavori = !isFavori;
-                  });
-                },
+                style: TextStyle(color: Colors.purple[900], fontWeight: FontWeight.bold),
               ),
               IconButton(
                 icon: Icon(Icons.search, color: Colors.blue),
@@ -480,7 +463,20 @@ Afiyet olsun!'''
                 Text('Yorumlar:', style: TextStyle(fontWeight: FontWeight.bold)),
                 ...?yorumlar[isim]?.map((y) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text('- $y'),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text('- $y')),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              setStateDialog(() {
+                                yorumlar[isim]!.remove(y);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                     )),
                 TextField(
                   controller: yorumController,
@@ -508,8 +504,7 @@ Afiyet olsun!'''
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child:
-                  Text('Kapat', style: TextStyle(color: Colors.purple[900])),
+              child: Text('Kapat', style: TextStyle(color: Colors.purple[900])),
             ),
           ],
         ),
@@ -536,8 +531,7 @@ Afiyet olsun!'''
           IconButton(
             icon: Icon(Icons.public),
             onPressed: () async {
-              final Uri googleUrl =
-                  Uri.parse('https://www.google.com/search?q=tatlı+tarifleri');
+              final Uri googleUrl = Uri.parse('https://www.google.com/search?q=tatli+tarifleri');
               if (await canLaunchUrl(googleUrl)) {
                 await launchUrl(googleUrl);
               } else {
@@ -555,6 +549,8 @@ Afiyet olsun!'''
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 Color backgroundColor = Colors.grey.shade200;
+                String isim = tatlilar[index]['isim']!;
+                bool isFavori = favoriler.contains(isim);
                 return Card(
                   margin: EdgeInsets.all(8),
                   elevation: 4,
@@ -565,11 +561,20 @@ Afiyet olsun!'''
                       color: const Color.fromARGB(255, 98, 19, 113),
                     ),
                     title: Text(
-                      tatlilar[index]['isim']!,
+                      isim,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(
+                        isFavori ? Icons.favorite : Icons.favorite_border,
+                        color: isFavori ? Colors.red : Colors.grey,
+                      ),
+                      onPressed: () {
+                        toggleFavori(isim);
+                      },
                     ),
                     onTap: () => detayDialog(context, index),
                   ),
@@ -616,7 +621,6 @@ class TatliSearchDelegate extends SearchDelegate {
   void detayDialog(BuildContext context, int index) {
     String isim = tatlilar[index]['isim']!;
     String tarif = tatlilar[index]['tarif']!;
-    bool isFavori = favoriler.contains(isim);
     TextEditingController yorumController = TextEditingController();
 
     showDialog(
@@ -628,20 +632,7 @@ class TatliSearchDelegate extends SearchDelegate {
             children: [
               Text(
                 isim,
-                style:
-                    TextStyle(color: Colors.purple[900], fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: Icon(
-                  isFavori ? Icons.favorite : Icons.favorite_border,
-                  color: isFavori ? Colors.red : Colors.grey,
-                ),
-                onPressed: () {
-                  setStateDialog(() {
-                    toggleFavori(isim);
-                    isFavori = !isFavori;
-                  });
-                },
+                style: TextStyle(color: Colors.purple[900], fontWeight: FontWeight.bold),
               ),
               IconButton(
                 icon: Icon(Icons.search, color: Colors.blue),
@@ -743,3 +734,5 @@ class TatliSearchDelegate extends SearchDelegate {
     );
   }
 }
+ 
+ 
